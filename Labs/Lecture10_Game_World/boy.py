@@ -1,6 +1,8 @@
 from pico2d import load_image, get_time
 from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
 
+import game_world
+from ball import Ball
 from state_machine import StateMachine
 
 
@@ -40,7 +42,8 @@ class Idle:
 
 
     def exit(self, e):
-        pass
+        if space_down(e):
+            self.boy.fire_ball()
 
     def do(self):
         self.boy.frame = (self.boy.frame + 1) % 8
@@ -91,7 +94,8 @@ class Run:
             self.boy.dir = self.boy.face_dir = -1
 
     def exit(self, e):
-        pass
+        if space_down(e):
+            self.boy.fire_ball()
 
     def do(self):
         self.boy.frame = (self.boy.frame + 1) % 8
@@ -124,8 +128,8 @@ class Boy:
             self.IDLE,
             {
                 self.SLEEP : {space_down: self.IDLE},
-                self.IDLE : {time_out: self.SLEEP, right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN},
-                self.RUN : {right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE}
+                self.IDLE : {space_down: self.IDLE, time_out: self.SLEEP, right_down: self.RUN, left_down: self.RUN, right_up: self.RUN, left_up: self.RUN},
+                self.RUN : {space_down: self.RUN, right_up: self.IDLE, left_up: self.IDLE, right_down: self.IDLE, left_down: self.IDLE}
             }
         )
 
@@ -138,3 +142,9 @@ class Boy:
 
     def draw(self):
         self.state_machine.draw()
+
+    def fire_ball(self):
+        ball = Ball(self.x, self.y-30, self.face_dir*10)
+        game_world.add_object(ball)
+
+
